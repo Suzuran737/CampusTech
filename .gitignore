@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads
+backend/uploads/
+
+# Prisma
+backend/prisma/*.db
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Vite
+frontend/dist/
+
+# 内部开发文档（开发计划、设计说明等，不推送到 GitHub）
+CampusTech-*.md
