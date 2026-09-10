@@ -3,7 +3,8 @@ import { type ChangeEvent, type FormEvent, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPost } from '../api/posts';
 import { uploadImage } from '../api/upload';
-import { isPostEditorContentValid, PostEditor } from '../components/PostEditor';
+import { LazyPostEditor } from '../components/LazyPostEditor';
+import { isPostEditorContentValid } from '../utils/postEditorValidation';
 import { POST_CATEGORY_LABELS } from '../constants/postCategory';
 import type { PostCategory } from '../types/post';
 import { resolveAssetUrl } from '../utils/resolveAssetUrl';
@@ -96,7 +97,7 @@ export function PostCreatePage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
+    <div className="mx-auto max-w-3xl rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-8">
       <h1 className="text-2xl font-bold text-slate-900">发布帖子</h1>
       <p className="mt-2 text-sm text-slate-600">分享你的学习心得与经验</p>
 
@@ -143,14 +144,19 @@ export function PostCreatePage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label
+            id="post-content-label"
+            className="mb-1 block text-sm font-medium text-slate-700"
+          >
             正文
           </label>
-          <PostEditor
+          <div aria-labelledby="post-content-label">
+          <LazyPostEditor
             value={content}
             onChange={setContent}
             disabled={createMutation.isPending || uploadingCover}
           />
+          </div>
         </div>
 
         <div>
@@ -170,7 +176,7 @@ export function PostCreatePage() {
             type="button"
             disabled={uploadingCover || createMutation.isPending}
             onClick={() => fileInputRef.current?.click()}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+            className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-60"
           >
             {uploadingCover ? '上传中...' : '选择封面'}
           </button>
@@ -192,7 +198,7 @@ export function PostCreatePage() {
             uploadingCover ||
             !isPostEditorContentValid(content)
           }
-          className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-60"
+          className="inline-flex min-h-11 items-center rounded-lg bg-slate-900 px-4 text-white hover:bg-slate-800 disabled:opacity-60"
         >
           {createMutation.isPending ? '发布中...' : '发布帖子'}
         </button>

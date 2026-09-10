@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { getPosts } from '../api/posts';
+import { getErrorMessage } from '../utils/errors';
 import { EmptyState } from './EmptyState';
+import { ErrorMessage } from './ErrorMessage';
+import { LoadingSpinner } from './LoadingSpinner';
 import { Pagination } from './Pagination';
 import { PostCard } from './PostCard';
 
@@ -14,21 +17,22 @@ interface UserPostListProps {
 export function UserPostList({ username }: UserPostListProps) {
   const [page, setPage] = useState(1);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['posts', 'user', username, page],
     queryFn: () =>
       getPosts({ authorUsername: username, page, pageSize: PAGE_SIZE }),
   });
 
   if (isLoading) {
-    return <div className="py-8 text-center text-slate-500">加载中...</div>;
+    return <LoadingSpinner className="py-8" />;
   }
 
   if (error) {
     return (
-      <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-600">
-        {error instanceof Error ? error.message : '加载失败'}
-      </div>
+      <ErrorMessage
+        message={getErrorMessage(error)}
+        onRetry={() => void refetch()}
+      />
     );
   }
 

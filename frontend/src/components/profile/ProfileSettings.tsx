@@ -106,7 +106,7 @@ export function ProfileSettings() {
             type="button"
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+            className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-60"
           >
             {uploading ? '上传中...' : '更换头像'}
           </button>
@@ -161,7 +161,7 @@ export function ProfileSettings() {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-60"
+          className="inline-flex min-h-11 items-center rounded-lg bg-slate-900 px-4 text-white hover:bg-slate-800 disabled:opacity-60"
         >
           {submitting ? '保存中...' : '保存昵称'}
         </button>

@@ -22,7 +22,7 @@ export function EmptyState({
       {actionLabel && actionTo && (
         <Link
           to={actionTo}
-          className="mt-6 inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800"
+          className="mt-6 inline-flex min-h-11 items-center rounded-lg bg-slate-900 px-4 text-sm text-white hover:bg-slate-800"
         >
           {actionLabel}
         </Link>

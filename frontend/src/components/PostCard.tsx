@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { POST_CATEGORY_LABELS } from '../constants/postCategory';
 import type { PostListItem } from '../types/post';
@@ -10,16 +11,20 @@ interface PostCardProps {
   showEditLink?: boolean;
 }
 
-export function PostCard({ post, showEditLink = false }: PostCardProps) {
+export const PostCard = memo(function PostCard({
+  post,
+  showEditLink = false,
+}: PostCardProps) {
   return (
-    <article className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition hover:ring-slate-300">
-      <div className="flex gap-4">
+    <article className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 transition hover:ring-slate-300 sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row">
         {post.coverUrl && (
-          <Link to={`/posts/${post.id}`} className="shrink-0">
+          <Link to={`/posts/${post.id}`} className="shrink-0 sm:w-32">
             <img
               src={resolveAssetUrl(post.coverUrl) ?? post.coverUrl}
-              alt=""
-              className="h-24 w-32 rounded-lg object-cover"
+              alt={`${post.title} 封面`}
+              loading="lazy"
+              className="h-40 w-full rounded-lg object-cover sm:h-24 sm:w-32"
             />
           </Link>
         )}
@@ -64,4 +69,4 @@ export function PostCard({ post, showEditLink = false }: PostCardProps) {
       </div>
     </article>
   );
-}
+});

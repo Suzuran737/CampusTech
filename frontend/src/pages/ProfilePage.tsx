@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 import { MyPostsList } from '../components/profile/MyPostsList';
 import { ProfileSettings } from '../components/profile/ProfileSettings';
 import { Tabs } from '../components/Tabs';
@@ -34,15 +35,11 @@ export function ProfilePage() {
   }
 
   if (!user) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center text-slate-500">
-        加载中...
-      </div>
-    );
+    return <LoadingSpinner className="min-h-[40vh]" />;
   }
 
   return (
-    <div className="mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
+    <div className="mx-auto max-w-3xl rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-8">
       <h1 className="text-2xl font-bold text-slate-900">个人中心</h1>
       <p className="mt-2 text-sm text-slate-600">管理资料与查看已发布的帖子</p>
 

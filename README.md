@@ -58,6 +58,16 @@ npm run dev
 
 前端地址：http://localhost:5173
 
+### 4. 前端测试
+
+```bash
+cd frontend
+npm run test        # 监听模式
+npm run test:run    # 单次运行（CI / 验收）
+```
+
+测试覆盖：登录页交互、富文本 XSS 过滤（`RichTextContent`）、个人中心「我的帖子」列表态（loading / empty / 数据渲染）。
+
 ## 开发里程碑
 
 | 周次 | 模块 |

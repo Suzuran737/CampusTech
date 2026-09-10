@@ -16,7 +16,7 @@ export function SourceFilter({ value, onChange }: SourceFilterProps) {
             key={option.label}
             type="button"
             onClick={() => onChange(option.value)}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+            className={`inline-flex min-h-11 items-center rounded-full px-4 text-sm font-medium transition ${
               isActive
                 ? 'bg-slate-900 text-white'
                 : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'

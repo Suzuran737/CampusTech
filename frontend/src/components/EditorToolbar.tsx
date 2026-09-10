@@ -25,9 +25,10 @@ function ToolbarButton({
     <button
       type="button"
       title={title}
+      aria-label={title}
       disabled={disabled}
       onClick={onClick}
-      className={`rounded px-2 py-1 text-sm ${
+      className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded px-2.5 text-sm ${
         active
           ? 'bg-slate-900 text-white'
           : 'text-slate-700 hover:bg-slate-100'

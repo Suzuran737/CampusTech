@@ -16,7 +16,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
   'image/webp',
 ]);
 
-interface PostEditorProps {
+export interface PostEditorProps {
   value: string;
   onChange: (html: string) => void;
   disabled?: boolean;
@@ -137,12 +137,4 @@ export function PostEditor({
       </div>
     </div>
   );
-}
-
-export function isPostEditorContentValid(
-  html: string,
-  maxCharacters = POST_CONTENT_MAX_PLAIN_TEXT_LENGTH,
-): boolean {
-  const plainText = stripHtmlToPlainText(html);
-  return plainText.length >= 1 && plainText.length <= maxCharacters;
 }

@@ -25,4 +25,9 @@ export class QueryPostsDto extends PaginationDto {
   @IsString()
   @MaxLength(20)
   authorUsername?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  keyword?: string;
 }
