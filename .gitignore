@@ -37,5 +37,6 @@ coverage/
 # Vite
 frontend/dist/
 
-# 内部开发文档（开发计划、设计说明等，不推送到 GitHub）
+# 内部开发文档（开发计划、设计说明、面试材料等，不推送到 GitHub）
 CampusTech-*.md
+面试材料/

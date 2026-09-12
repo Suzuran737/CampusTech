@@ -88,8 +88,8 @@ function main() {
 
   record(
     '9. 深度文档链接',
-    readme.includes('面试材料/'),
-    '链接至 面试材料/ 目录',
+    readme.includes('docs/前端架构说明.md'),
+    '链接至 docs/前端架构说明.md',
   );
 
   console.log('\n=== 子任务 D 验收 ===');

@@ -120,9 +120,11 @@ async function main() {
   }
 
   record(
-    '5. README 链接面试材料',
-    readFileSync(join(ROOT, 'README.md'), 'utf8').includes('面试材料/'),
-    'README 已指向 面试材料 目录',
+    '5. README 链接架构文档',
+    readFileSync(join(ROOT, 'README.md'), 'utf8').includes(
+      'docs/前端架构说明.md',
+    ),
+    'README 已指向 docs/前端架构说明.md',
   );
 
   console.log('\n=== 子任务 J 验收 ===');
