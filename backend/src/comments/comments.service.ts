@@ -14,24 +14,42 @@ const authorSelect = {
   avatarUrl: true,
 } as const;
 
-const commentSelect = {
-  id: true,
-  content: true,
-  createdAt: true,
-  author: {
-    select: authorSelect,
-  },
-  replies: {
-    orderBy: { createdAt: 'asc' as const },
-    select: {
-      id: true,
-      content: true,
-      createdAt: true,
-      author: {
-        select: authorSelect,
-      },
-    },
-  },
+type CommentAuthor = {
+  id: number;
+  username: string;
+  nickname: string | null;
+  avatarUrl: string | null;
+};
+
+type CommentRow = {
+  id: number;
+  content: string;
+  createdAt: Date;
+  parentId: number | null;
+  author: CommentAuthor;
+};
+
+type ReplyTarget = {
+  id: number;
+  username: string;
+  nickname: string | null;
+};
+
+export type FlatReply = {
+  id: number;
+  content: string;
+  createdAt: Date;
+  author: CommentAuthor;
+  replyTo: ReplyTarget | null;
+};
+
+export type CommentWithReplies = {
+  id: number;
+  content: string;
+  createdAt: Date;
+  author: CommentAuthor;
+  replies: FlatReply[];
+  replyCount: number;
 };
 
 @Injectable()
@@ -41,14 +59,21 @@ export class CommentsService {
   async findByPostId(postId: number) {
     await this.assertPostExists(postId);
 
-    return this.prisma.comment.findMany({
-      where: {
-        postId,
-        parentId: null,
-      },
+    const rows = await this.prisma.comment.findMany({
+      where: { postId },
       orderBy: { createdAt: 'asc' },
-      select: commentSelect,
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        parentId: true,
+        author: {
+          select: authorSelect,
+        },
+      },
     });
+
+    return this.buildCommentList(rows);
   }
 
   async create(postId: number, authorId: number, dto: CreateCommentDto) {
@@ -57,7 +82,7 @@ export class CommentsService {
     if (dto.parentId) {
       const parent = await this.prisma.comment.findUnique({
         where: { id: dto.parentId },
-        select: { id: true, postId: true, parentId: true },
+        select: { id: true, postId: true },
       });
 
       if (!parent) {
@@ -66,10 +91,6 @@ export class CommentsService {
 
       if (parent.postId !== postId) {
         throw new BadRequestException('评论不属于该帖子');
-      }
-
-      if (parent.parentId !== null) {
-        throw new BadRequestException('只能回复一级评论');
       }
     }
 
@@ -108,6 +129,79 @@ export class CommentsService {
     await this.prisma.comment.delete({ where: { id } });
 
     return { id };
+  }
+
+  private buildCommentList(rows: CommentRow[]): CommentWithReplies[] {
+    const rowMap = new Map(rows.map((row) => [row.id, row]));
+    const rootRows = rows.filter((row) => row.parentId === null);
+
+    return rootRows.map((root) => {
+      const flatReplies = this.collectFlatReplies(root, rows, rowMap);
+      return {
+        id: root.id,
+        content: root.content,
+        createdAt: root.createdAt,
+        author: root.author,
+        replies: flatReplies,
+        replyCount: flatReplies.length,
+      };
+    });
+  }
+
+  /** 楼中楼：同一根评论下的回复按时间扁平展示，非直接回复楼主时带 replyTo */
+  private collectFlatReplies(
+    root: CommentRow,
+    rows: CommentRow[],
+    rowMap: Map<number, CommentRow>,
+  ): FlatReply[] {
+    const descendants: FlatReply[] = [];
+
+    const walk = (parentId: number) => {
+      const children = rows
+        .filter((row) => row.parentId === parentId)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+      for (const child of children) {
+        const parent = rowMap.get(parentId);
+        const replyTo = this.resolveReplyTarget(root, parent, child);
+
+        descendants.push({
+          id: child.id,
+          content: child.content,
+          createdAt: child.createdAt,
+          author: child.author,
+          replyTo,
+        });
+
+        walk(child.id);
+      }
+    };
+
+    walk(root.id);
+
+    return descendants.sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+    );
+  }
+
+  private resolveReplyTarget(
+    root: CommentRow,
+    parent: CommentRow | undefined,
+    _child: CommentRow,
+  ): ReplyTarget | null {
+    if (!parent || parent.id === root.id) {
+      return null;
+    }
+
+    if (parent.author.id === root.author.id) {
+      return null;
+    }
+
+    return {
+      id: parent.author.id,
+      username: parent.author.username,
+      nickname: parent.author.nickname,
+    };
   }
 
   private async assertPostExists(postId: number) {

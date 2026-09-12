@@ -2,8 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { getArticles } from '../api/articles';
 import { ArticleCard } from '../components/ArticleCard';
+import { EmptyState } from '../components/EmptyState';
+import { ErrorMessage } from '../components/ErrorMessage';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 import { Pagination } from '../components/Pagination';
 import { SourceFilter } from '../components/SourceFilter';
+import { getErrorMessage } from '../utils/errors';
 
 const PAGE_SIZE = 10;
 
@@ -11,7 +15,7 @@ export function ArticleListPage() {
   const [page, setPage] = useState(1);
   const [source, setSource] = useState<string | undefined>();
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['articles', page, source],
     queryFn: () => getArticles({ page, pageSize: PAGE_SIZE, source }),
   });
@@ -32,20 +36,20 @@ export function ArticleListPage() {
 
       <SourceFilter value={source} onChange={handleSourceChange} />
 
-      {isLoading && (
-        <div className="py-16 text-center text-slate-500">加载中...</div>
-      )}
+      {isLoading && <LoadingSpinner />}
 
       {error && (
-        <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-600">
-          {error instanceof Error ? error.message : '加载失败'}
-        </div>
+        <ErrorMessage
+          message={getErrorMessage(error)}
+          onRetry={() => void refetch()}
+        />
       )}
 
       {!isLoading && !error && data?.list.length === 0 && (
-        <div className="rounded-2xl bg-white py-16 text-center text-slate-500 shadow-sm ring-1 ring-slate-200">
-          暂无资讯，请稍后刷新或手动抓取
-        </div>
+        <EmptyState
+          title="暂无资讯"
+          description="还没有抓取到文章，请稍后刷新或联系管理员触发抓取"
+        />
       )}
 
       {!isLoading && !error && data && data.list.length > 0 && (

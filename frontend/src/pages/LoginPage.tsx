@@ -30,16 +30,20 @@ export function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
+    <div className="mx-auto max-w-md rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-8">
       <h1 className="text-2xl font-bold text-slate-900">登录</h1>
       <p className="mt-2 text-sm text-slate-600">登录后即可发帖与评论</p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label
+            htmlFor="login-username"
+            className="mb-1 block text-sm font-medium text-slate-700"
+          >
             用户名
           </label>
           <input
+            id="login-username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
@@ -49,10 +53,14 @@ export function LoginPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label
+            htmlFor="login-password"
+            className="mb-1 block text-sm font-medium text-slate-700"
+          >
             密码
           </label>
           <input
+            id="login-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -65,7 +73,7 @@ export function LoginPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-60"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-900 px-4 text-white hover:bg-slate-800 disabled:opacity-60"
         >
           {submitting ? '登录中...' : '登录'}
         </button>

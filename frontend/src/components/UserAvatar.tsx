@@ -33,11 +33,13 @@ export function UserAvatar({
     setImageFailed(false);
   }, [avatarUrl]);
 
+  const altText = `${nickname || username} 的头像`;
+
   if (resolvedUrl && !imageFailed) {
     return (
       <img
         src={resolvedUrl}
-        alt={nickname || username}
+        alt={altText}
         className={className}
         onError={() => setImageFailed(true)}
       />
@@ -46,8 +48,9 @@ export function UserAvatar({
 
   return (
     <div
+      role="img"
+      aria-label={altText}
       className={`${className} flex items-center justify-center bg-slate-200 font-semibold text-slate-600`}
-      aria-hidden
     >
       {getInitial(nickname, username)}
     </div>

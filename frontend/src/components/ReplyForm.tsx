@@ -5,6 +5,7 @@ import { createComment } from '../api/comments';
 interface ReplyFormProps {
   postId: number;
   parentId: number;
+  replyToName?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -12,6 +13,7 @@ interface ReplyFormProps {
 export function ReplyForm({
   postId,
   parentId,
+  replyToName,
   onSuccess,
   onCancel,
 }: ReplyFormProps) {
@@ -50,7 +52,9 @@ export function ReplyForm({
         value={content}
         onChange={(event) => setContent(event.target.value)}
         rows={2}
-        placeholder="写下你的回复..."
+        placeholder={
+          replyToName ? `回复 @${replyToName}...` : '写下你的回复...'
+        }
         maxLength={500}
         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
       />

@@ -40,4 +40,5 @@ export interface QueryPostsParams {
   category?: PostCategory;
   authorId?: number;
   authorUsername?: string;
+  keyword?: string;
 }

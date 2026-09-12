@@ -1,8 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { getComments } from '../api/comments';
+import { getErrorMessage } from '../utils/errors';
 import { CommentForm } from './CommentForm';
 import { CommentItem } from './CommentItem';
+import { ErrorMessage } from './ErrorMessage';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface CommentListProps {
   postId: number;
@@ -13,25 +16,32 @@ export function CommentList({ postId }: CommentListProps) {
     null,
   );
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['comments', postId],
     queryFn: () => getComments(postId),
     enabled: Number.isInteger(postId) && postId > 0,
   });
 
   return (
-    <section className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
+    <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-8">
       <h2 className="text-lg font-semibold text-slate-900">评论</h2>
       <CommentForm postId={postId} />
 
       {isLoading && (
-        <p className="mt-4 text-sm text-slate-500">加载评论中...</p>
+        <LoadingSpinner
+          inline
+          size="sm"
+          label="加载评论中..."
+          className="mt-4"
+        />
       )}
 
       {error && (
-        <p className="mt-4 text-sm text-red-600">
-          {error instanceof Error ? error.message : '加载评论失败'}
-        </p>
+        <ErrorMessage
+          className="mt-4"
+          message={getErrorMessage(error, '加载评论失败')}
+          onRetry={() => void refetch()}
+        />
       )}
 
       {!isLoading && !error && data?.length === 0 && (

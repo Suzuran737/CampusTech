@@ -42,6 +42,11 @@ export class PostsService {
       where.category = query.category;
     }
 
+    const keyword = query.keyword?.trim();
+    if (keyword) {
+      where.title = { contains: keyword, mode: 'insensitive' };
+    }
+
     const authorFilter = await this.resolveAuthorFilter(query);
     if (authorFilter === 'notFound') {
       return { list: [], total: 0, page, pageSize };

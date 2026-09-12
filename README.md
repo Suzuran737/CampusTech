@@ -1,54 +1,30 @@
 # CampusTech
 
-面向大学生与初学者的技术学习与交流社区平台。
+**React 技术社区 SPA** — 面向大学生与初学者的学习交流、富文本发帖、评论互动与 RSS 资讯聚合平台。
 
-## 技术栈
+## 前端技术栈
 
-- **前端**：React 18 + TypeScript + Vite + React Router + TanStack Query + Tailwind CSS
-- **后端**：NestJS + Prisma + PostgreSQL + JWT
+React 19 · TypeScript · Vite · React Router · TanStack Query · Tailwind CSS · TipTap · Axios · Vitest
 
-## 目录结构
+> 后端：NestJS + PostgreSQL + Prisma（REST API 联调，端口 3000）
 
-```
-CampusTech/
-├── backend/     # NestJS API（端口 3000）
-├── frontend/    # React SPA（端口 5173）
-└── CampusTech-设计说明.md
-```
+## 功能截图
 
-## 环境要求
+| 首页 | 帖子列表 |
+| --- | --- |
+| ![首页](./docs/screenshots/home.png) | ![帖子列表](./docs/screenshots/post-list.png) |
 
-- Node.js 18+
-- PostgreSQL 15+
+| 发帖编辑器（TipTap） | 帖子详情 + 评论 |
+| --- | --- |
+| ![发帖编辑器](./docs/screenshots/post-editor.png) | ![帖子详情](./docs/screenshots/post-detail.png) |
+
+| 个人中心（375px 移动端） |
+| --- |
+| ![个人中心移动端](./docs/screenshots/profile-mobile.png) |
 
 ## 快速开始
 
-### 1. 数据库
-
-确保 PostgreSQL 已运行，配置 `backend/.env`（从 `.env.example` 复制），然后执行：
-
-```powershell
-# 方式一：使用脚本（从 backend/.env 读取 DATABASE_URL）
-scripts\setup-db.bat
-
-# 方式二：手动
-# 1. 在 psql 中 CREATE DATABASE campustech;
-# 2. cd backend && npx prisma migrate dev --name init
-```
-
-### 2. 后端
-
-```bash
-cd backend
-cp .env.example .env   # 编辑 DATABASE_URL 与 JWT_SECRET
-npm install
-npx prisma migrate dev
-npm run start:dev
-```
-
-API 地址：http://localhost:3000/api
-
-### 3. 前端
+### 1. 前端（推荐先跑）
 
 ```bash
 cd frontend
@@ -56,15 +32,64 @@ npm install
 npm run dev
 ```
 
-前端地址：http://localhost:5173
+浏览器打开 http://localhost:5173
 
-## 开发里程碑
+开发模式下 `/api` 与 `/uploads` 由 Vite 代理到 `http://localhost:3000`，无需额外配置。
 
-| 周次 | 模块 |
-|------|------|
-| 第 1 周 | 用户系统（注册、登录、JWT） |
-| 第 2 周 | 论坛帖子 CRUD |
-| 第 3 周 | 评论与回复 |
-| 第 4 周 | RSS 技术资讯 |
+### 2. 后端（精简）
 
-详细设计见 [CampusTech-设计说明.md](./CampusTech-设计说明.md)。
+```bash
+cd backend
+cp .env.example .env   # Windows: Copy-Item .env.example .env
+npm install
+npx prisma migrate dev
+npm run start:dev
+```
+
+API：http://localhost:3000/api
+
+### 3. 数据库
+
+PostgreSQL 15+，在 `backend/.env` 中配置 `DATABASE_URL`。也可使用根目录 `scripts/setup-db.bat` 初始化。
+
+## 前端模块说明
+
+- **路由**：公开页（首页 / 帖子 / 资讯）+ `ProtectedRoute` 守卫（发帖 / 编辑 / 个人中心）+ `GuestRoute`（已登录不可进登录页）+ 404 兜底；重页面 `React.lazy` 按需加载。
+- **状态**：服务端数据用 TanStack Query（如 `['posts', page, category, keyword]`）；表单与 Tab 等 UI 态用 `useState` / URL 参数。
+- **组件分层**：`pages/` 页面 · `components/` 复用 UI · `hooks/` 认证与 debounce · `api/` Axios 封装 · `types/` 共享类型。
+- **体验**：统一 `LoadingSpinner` / `EmptyState` / `ErrorMessage`；列表 debounce 搜索；TipTap 编辑器动态 import，首屏 bundle 约 **286 KB**（优化前 ~803 KB）。
+
+## 测试
+
+```bash
+cd frontend
+npm run test        # 监听模式
+npm run test:run    # 单次运行
+```
+
+覆盖登录页交互、富文本 XSS 过滤（`RichTextContent`）、个人中心「我的帖子」列表态。
+
+## 部署
+
+> Demo 链接：待子任务 F 部署后补充。
+
+生产构建时复制 `frontend/.env.example` 为 `.env`，设置 `VITE_API_BASE_URL` 指向线上 API。
+
+## 深度文档 / 面试材料
+
+详见 **[面试材料/](./面试材料/)** 目录：
+
+- [简历项目描述](./面试材料/简历项目描述.md) — 多版本 bullet，可直接粘贴
+- [面试问答](./面试材料/面试问答.md) — 高频问题与参考答案
+- [前端 Demo 剧本](./面试材料/前端Demo剧本.md) — 2 分钟演示流程
+- [富文本与 XSS 防护](./面试材料/富文本与XSS防护.md) — 三层防护 + Payload 对比
+- [前端架构说明](./面试材料/前端架构说明.md) — 路由、Query、性能优化
+
+## 环境变量
+
+| 位置 | 变量 | 说明 |
+| --- | --- | --- |
+| `frontend/.env` | `VITE_API_BASE_URL` | 生产 API 地址；开发可留空用 proxy |
+| `backend/.env` | `DATABASE_URL` | PostgreSQL 连接串 |
+| `backend/.env` | `JWT_SECRET` | JWT 签名密钥 |
+| `backend/.env` | `PORT` | 默认 3000 |

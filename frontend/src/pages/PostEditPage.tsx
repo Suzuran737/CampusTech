@@ -1,12 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { getPost, updatePost } from '../api/posts';
 import { uploadImage } from '../api/upload';
-import { isPostEditorContentValid, PostEditor } from '../components/PostEditor';
+import { ErrorMessage } from '../components/ErrorMessage';
+import { LazyPostEditor } from '../components/LazyPostEditor';
+import { isPostEditorContentValid } from '../utils/postEditorValidation';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 import { POST_CATEGORY_LABELS } from '../constants/postCategory';
 import { useAuth } from '../hooks/useAuth';
 import type { PostCategory } from '../types/post';
+import { getErrorMessage, isNotFoundError } from '../utils/errors';
 import { resolveAssetUrl } from '../utils/resolveAssetUrl';
 
 const MAX_COVER_SIZE = 2 * 1024 * 1024;
@@ -39,7 +43,7 @@ export function PostEditPage() {
   const [error, setError] = useState('');
   const [uploadingCover, setUploadingCover] = useState(false);
 
-  const { data: post, isLoading, error: loadError } = useQuery({
+  const { data: post, isLoading, error: loadError, refetch } = useQuery({
     queryKey: ['post', postId],
     queryFn: () => getPost(postId),
     enabled: Number.isInteger(postId) && postId > 0,
@@ -132,14 +136,33 @@ export function PostEditPage() {
   }
 
   if (isLoading) {
+    return <LoadingSpinner className="min-h-[40vh]" />;
+  }
+
+  if (loadError) {
+    if (isNotFoundError(loadError)) {
+      return (
+        <div className="mx-auto max-w-3xl rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
+          <h1 className="text-xl font-bold text-slate-900">帖子不存在</h1>
+          <Link
+            to="/posts"
+            className="mt-6 inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800"
+          >
+            返回帖子列表
+          </Link>
+        </div>
+      );
+    }
+
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-slate-500">
-        加载中...
-      </div>
+      <ErrorMessage
+        message={getErrorMessage(loadError)}
+        onRetry={() => void refetch()}
+      />
     );
   }
 
-  if (loadError || !post) {
+  if (!post) {
     return (
       <div className="mx-auto max-w-3xl rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
         <h1 className="text-xl font-bold text-slate-900">帖子不存在</h1>
@@ -155,21 +178,16 @@ export function PostEditPage() {
 
   if (user && user.id !== post.author.id) {
     return (
-      <div className="mx-auto max-w-3xl rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
-        <h1 className="text-xl font-bold text-slate-900">无权编辑</h1>
-        <p className="mt-2 text-sm text-slate-600">你只能编辑自己发布的帖子</p>
-        <Link
-          to={`/posts/${post.id}`}
-          className="mt-6 inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800"
-        >
-          返回帖子详情
-        </Link>
-      </div>
+      <Navigate
+        to={`/posts/${post.id}`}
+        replace
+        state={{ notice: '无权编辑此帖子' }}
+      />
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
+    <div className="mx-auto max-w-3xl rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-8">
       <h1 className="text-2xl font-bold text-slate-900">编辑帖子</h1>
       <p className="mt-2 text-sm text-slate-600">修改帖子内容后保存</p>
 
@@ -216,16 +234,21 @@ export function PostEditPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label
+            id="edit-post-content-label"
+            className="mb-1 block text-sm font-medium text-slate-700"
+          >
             正文
           </label>
-          <PostEditor
-            key={post.id}
-            editorKey={post.id}
-            value={content}
-            onChange={setContent}
-            disabled={updateMutation.isPending || uploadingCover}
-          />
+          <div aria-labelledby="edit-post-content-label">
+            <LazyPostEditor
+              key={post.id}
+              editorKey={post.id}
+              value={content}
+              onChange={setContent}
+              disabled={updateMutation.isPending || uploadingCover}
+            />
+          </div>
         </div>
 
         <div>
@@ -245,7 +268,7 @@ export function PostEditPage() {
             type="button"
             disabled={uploadingCover || updateMutation.isPending}
             onClick={() => fileInputRef.current?.click()}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+            className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-60"
           >
             {uploadingCover ? '上传中...' : '更换封面'}
           </button>
@@ -260,7 +283,7 @@ export function PostEditPage() {
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <button
             type="submit"
             disabled={
@@ -268,13 +291,13 @@ export function PostEditPage() {
               uploadingCover ||
               !isPostEditorContentValid(content)
             }
-            className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-60"
+            className="inline-flex min-h-11 items-center rounded-lg bg-slate-900 px-4 text-white hover:bg-slate-800 disabled:opacity-60"
           >
             {updateMutation.isPending ? '保存中...' : '保存修改'}
           </button>
           <Link
             to={`/posts/${post.id}`}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+            className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 text-sm text-slate-700 hover:bg-slate-100"
           >
             取消
           </Link>
