@@ -22,10 +22,15 @@ async function login(page) {
   });
 }
 
-async function getFirstPostId(page) {
-  const resp = await page.request.get(`${API}/posts?pageSize=1`);
+async function getScreenshotPostId(page) {
+  const resp = await page.request.get(`${API}/posts?pageSize=20`);
   const json = await resp.json();
-  return json.data?.list?.[0]?.id ?? null;
+  const posts = json.data?.list ?? [];
+
+  const preferred = posts.find((post) =>
+    /XSS|秋招|TanStack Query/i.test(post.title),
+  );
+  return preferred?.id ?? posts[0]?.id ?? null;
 }
 
 async function main() {
@@ -51,12 +56,16 @@ async function main() {
     await page.waitForTimeout(800);
     await page.screenshot({ path: join(OUT_DIR, 'post-editor.png'), fullPage: false });
 
-    const postId = await getFirstPostId(page);
+    const postId = await getScreenshotPostId(page);
     if (!postId) {
       throw new Error('数据库无帖子，无法截取详情页');
     }
     await page.goto(`${BASE}/posts/${postId}`, { waitUntil: 'networkidle' });
-    await page.waitForTimeout(800);
+    await page
+      .getByRole('heading', { level: 2, name: '评论' })
+      .waitFor({ state: 'visible', timeout: 15000 })
+      .catch(() => null);
+    await page.waitForTimeout(1200);
     await page.screenshot({ path: join(OUT_DIR, 'post-detail.png'), fullPage: false });
 
     await page.setViewportSize({ width: 375, height: 812 });
